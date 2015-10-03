@@ -6,6 +6,12 @@
  *
  * TODO: añadir colección de enemigos que vaya aumentando su número
  * mientras transcurre el tiempo de juego.
+ *
+ * Necesito:
+ *  - Contabilizar los segundos que llevo jugando.
+ *  - Crear una forma de aumentar el número de enemigos creados.
+ *  - Aumentar número de enemigos creados según avanza el tiempo.
+ *  - Crear un gameover y una forma de resetear el juego
  */
 (function () {
   'use strict';
@@ -145,7 +151,6 @@
     enemies.push(this.enemy);
   };
   Game.prototype.init = function () {
-
     // initialize event listener
     window.addEventListener('keydown', function (event) {
       lastKey = event.which;
@@ -155,6 +160,9 @@
     });
     // initialize player
     player = new GamePlayer(10, canvas.height - 20, 10, 10);
+    this.genEnemies();
+    this.genEnemies();
+    this.genEnemies();
     this.genEnemies();
     this.draw();
     this.run();
@@ -173,6 +181,7 @@
         }
       }
     }
+    // mover jugador si se presiona tecla
     if (lastKey !== undefined) {
       if (lastKey === 37) {
         player.direction = 'left';

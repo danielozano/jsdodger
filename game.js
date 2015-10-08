@@ -1,17 +1,9 @@
 /*jslint browser: true*/
 /**
- * Ya se crea un enemigo, se actualiza, y se comprueba si colisiona
- * o no con el jugador.
- * Este enemigo se resetea reutilizandose en una posición nueva.
- *
- * TODO: añadir colección de enemigos que vaya aumentando su número
- * mientras transcurre el tiempo de juego.
- *
- * Necesito:
- *  - Contabilizar los segundos que llevo jugando.
- *  - Crear una forma de aumentar el número de enemigos creados.
- *  - Aumentar número de enemigos creados según avanza el tiempo.
- *  - Crear un gameover y una forma de resetear el juego
+ * @version  0.1.0
+ * @author  Daniel Lozano Morales <dn.lozano.m@gmail.com>
+ * @beta
+ * @todo  Rehacer script entero, con namespaces y OOP.
  */
 (function () {
   'use strict';
@@ -20,6 +12,12 @@
   var lastKey;
   var player;
   var enemies = [];
+  var startTime;
+  var gameTime;
+  var gameOver = false;
+  var pause = false;
+  var animFrame;
+  var startButton;
 
   // create animation frame function
   window.requestAnimFrame = (function () {
@@ -151,6 +149,10 @@
     enemies.push(this.enemy);
   };
   Game.prototype.init = function () {
+    gameOver = false;
+    pause = false;
+    // iniciar tiempo de juego
+    startTime = Date.now();
     // initialize event listener
     window.addEventListener('keydown', function (event) {
       lastKey = event.which;
@@ -168,42 +170,68 @@
     this.run();
   };
   Game.prototype.update = function () {
+    if (gameOver) {
+      this.gameOver();
+      return;
+    }
+    if (lastKey === 32) {
+      pause = !pause;
+      lastKey = undefined;
+    }
     var enemy;
-    // move all enemies
-    for (enemy in enemies) {
-      if (enemies.hasOwnProperty(enemy)) {
-        if (enemies[enemy].active) {
-          enemies[enemy].move();
-          if (player.collidesRect(enemies[enemy])) {
-            console.log('Collision!! stop the game');
-            enemies[enemy].active = false;
+    var nowTime;
+    // establecer tiempo actual
+    if (pause !== false) {
+      nowTime = Date.now();
+      gameTime = (nowTime - startTime) / 1000;
+      // move all enemies
+      for (enemy in enemies) {
+        if (enemies.hasOwnProperty(enemy)) {
+          if (enemies[enemy].active) {
+            enemies[enemy].move();
+            if (player.collidesRect(enemies[enemy])) {
+              // hay colisión
+              enemies[enemy].active = false;
+              gameOver = true;
+            }
           }
         }
       }
-    }
-    // mover jugador si se presiona tecla
-    if (lastKey !== undefined) {
-      if (lastKey === 37) {
-        player.direction = 'left';
-      } else if (lastKey === 38) {
-        player.direction = 'up';
-      } else if (lastKey === 39) {
-        player.direction = 'right';
-      } else if (lastKey === 40) {
-        player.direction = 'down';
+      // mover jugador si se presiona tecla
+      if (lastKey !== undefined) {
+        if (lastKey === 37) {
+          player.direction = 'left';
+        } else if (lastKey === 38) {
+          player.direction = 'up';
+        } else if (lastKey === 39) {
+          player.direction = 'right';
+        } else if (lastKey === 40) {
+          player.direction = 'down';
+        }
+        // move player
+        player.move(5);
       }
-      // move player
-      player.move(5);
     }
   };
   Game.prototype.run = function () {
-    requestAnimFrame(Game.prototype.run);
+    animFrame = requestAnimFrame(Game.prototype.run);
     Game.prototype.update();
     Game.prototype.draw();
   };
+  Game.prototype.gameOver = function () {
+    lastKey = null;
+    ctx.fillStyle = '#fff';
+    ctx.font = "2em Arial";
+    ctx.fillText('Game Over', 200, Math.floor(canvas.height / 2));
+    window.cancelAnimationFrame(animFrame);
+  };
   // get canvas, context and init the game
   canvas = document.getElementById('game');
-  ctx = canvas.getContext('2d');
   var game = new Game(canvas, ctx);
-  game.init();
+  ctx = canvas.getContext('2d');
+  startButton = document.getElementById('start');
+  startButton.addEventListener('click', function (event) {
+    event.preventDefault();
+    game.init();
+  });
 }());

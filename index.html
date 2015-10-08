@@ -6,10 +6,19 @@
 	<style>
 		#game {
 			background: #000;
+			position: relative;
 		}
+	#start {
+		position: absolute;
+		left: 50%;
+		top: 50%;
+		transform: translate(-50%, -50%);
+		z-index: 9999;
+	}
 	</style>
 </head>
 <body>
+	<a id="start" href="#">Start</a>
 	<canvas id="game" width="600" height="300">
 		Canvas not suported
 	</canvas>

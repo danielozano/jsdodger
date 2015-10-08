@@ -1,17 +1,9 @@
 /*jslint browser: true*/
 /**
- * Ya se crea un enemigo, se actualiza, y se comprueba si colisiona
- * o no con el jugador.
- * Este enemigo se resetea reutilizandose en una posición nueva.
- *
- * TODO: añadir colección de enemigos que vaya aumentando su número
- * mientras transcurre el tiempo de juego.
- *
- * Necesito:
- *  - Contabilizar los segundos que llevo jugando. X
- *  - Crear una forma de aumentar el número de enemigos creados.
- *  - Aumentar número de enemigos creados según avanza el tiempo.
- *  - Crear un gameover y una forma de resetear el juego
+ * @version  0.1.0
+ * @author  Daniel Lozano Morales <dn.lozano.m@gmail.com>
+ * @beta
+ * @todo  Rehacer script entero, con namespaces y OOP.
  */
 (function () {
   'use strict';

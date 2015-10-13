@@ -1,17 +1,32 @@
 /*jslint browser: true*/
 /**
- * Ya se crea un enemigo, se actualiza, y se comprueba si colisiona
- * o no con el jugador.
- * Este enemigo se resetea reutilizandose en una posición nueva.
+ * @version  0.1.0
+ * @author  Daniel Lozano Morales <dn.lozano.m@gmail.com>
+ * @beta
+ */
+/**
+ * TODO
+ * 
+ * Hacer que se incremente el número de enemigos cada 10s, para
+ * ello quizás haya que cambiar la forma de crear los enemigos. Crear
+ * una Clase Pool, que contenga el número de enemigos a crear y a mover,
+ * los establezca como activos/inactivos, e incremente su número mientras
+ * el bucle esta corrriendo.
+ * Ejemplo:
+ *  - Game.init() -> Pool.init(10) -> Bucle en Pool.init() 10 enemigos
+ *  - En update() -> Pool.draw() -> Bucle en Pool.init() llamando a enemy[i].draw()
+ *  - En update() -> Pool.increment() -> Añadir nuevo enemigo al array.7
  *
- * TODO: añadir colección de enemigos que vaya aumentando su número
- * mientras transcurre el tiempo de juego.
+ * La clase Pool tendra una función update, que actualizará los objetos enemigos
+ * y otra draw, que pintará todos los enemigos que estén activos.
+ * Será una capa de abstracción entre la clase Game y la clase Enemy que quizás
+ * desaparezca.
+ * Guardará todos los enemigos en un array, y cuando dicho enemigo llegue al final
+ * del canvas se reiniciará su posición, tamaño y velocidad.
  *
- * Necesito:
- *  - Contabilizar los segundos que llevo jugando. X
- *  - Crear una forma de aumentar el número de enemigos creados.
- *  - Aumentar número de enemigos creados según avanza el tiempo.
- *  - Crear un gameover y una forma de resetear el juego
+ * Según vaya pasando el tiempo en el bucle run, se calcularán 5s, y se incrementará
+ * el número de enemigos activos en Pool, +1. Seguidamente se reiniciará el contador
+ * de segundos.
  */
 (function () {
   'use strict';
@@ -20,24 +35,8 @@
   var lastKey;
   var player;
   var enemies = [];
-  var startTime;
-  var gameTime;
-  var gameOver = false;
-  var pause = false;
-  var animFrame;
   var startButton;
 
-  // create animation frame function
-  window.requestAnimFrame = (function () {
-    return window.requestAnimationFrame   ||
-      window.webkitRequestAnimationFrame  ||
-      window.mozRequestAnimationFrame   ||
-      window.oRequestAnimationFrame   ||
-      window.msRequestAnimationFrame    ||
-      function (callback) {
-        window.setTimeout(callback, 1000 / 60);
-      };
-  }());
   /**
    * Base class for elements (players) of the game.
    */
@@ -157,10 +156,6 @@
     enemies.push(this.enemy);
   };
   Game.prototype.init = function () {
-    gameOver = false;
-    pause = false;
-    // iniciar tiempo de juego
-    startTime = Date.now();
     // initialize event listener
     window.addEventListener('keydown', function (event) {
       lastKey = event.which;
@@ -178,60 +173,37 @@
     this.run();
   };
   Game.prototype.update = function () {
-    if (gameOver) {
-      this.gameOver();
-      return;
-    }
-    if (lastKey === 32) {
-      pause = !pause;
-      lastKey = undefined;
-    }
     var enemy;
-    var nowTime;
-    // establecer tiempo actual
-    if (pause !== false) {
-      nowTime = Date.now();
-      gameTime = (nowTime - startTime) / 1000;
-      // move all enemies
-      for (enemy in enemies) {
-        if (enemies.hasOwnProperty(enemy)) {
-          if (enemies[enemy].active) {
-            enemies[enemy].move();
-            if (player.collidesRect(enemies[enemy])) {
-              // hay colisión
-              enemies[enemy].active = false;
-              gameOver = true;
-            }
+    for (enemy in enemies) {
+      if (enemies.hasOwnProperty(enemy)) {
+        if (enemies[enemy].active) {
+          enemies[enemy].move();
+          if (player.collidesRect(enemies[enemy])) {
+            enemies[enemy].active = false;
           }
         }
       }
-      // mover jugador si se presiona tecla
-      if (lastKey !== undefined) {
-        if (lastKey === 37) {
-          player.direction = 'left';
-        } else if (lastKey === 38) {
-          player.direction = 'up';
-        } else if (lastKey === 39) {
-          player.direction = 'right';
-        } else if (lastKey === 40) {
-          player.direction = 'down';
-        }
-        // move player
-        player.move(5);
+    }
+    // mover jugador si se presiona tecla
+    if (lastKey !== undefined) {
+      if (lastKey === 37) {
+        player.direction = 'left';
+      } else if (lastKey === 38) {
+        player.direction = 'up';
+      } else if (lastKey === 39) {
+        player.direction = 'right';
+      } else if (lastKey === 40) {
+        player.direction = 'down';
       }
+      // move player
+      player.move(5);
     }
   };
-  Game.prototype.run = function () {
-    animFrame = requestAnimFrame(Game.prototype.run);
+  Game.prototype.run = function (time) {
+    console.log(Math.floor(time / 1000));
+    Game.prototype.mainLoop = window.requestAnimationFrame(Game.prototype.run);
     Game.prototype.update();
     Game.prototype.draw();
-  };
-  Game.prototype.gameOver = function () {
-    lastKey = null;
-    ctx.fillStyle = '#fff';
-    ctx.font = "2em Arial";
-    ctx.fillText('Game Over', 200, Math.floor(canvas.height / 2));
-    window.cancelAnimationFrame(animFrame);
   };
   // get canvas, context and init the game
   canvas = document.getElementById('game');
